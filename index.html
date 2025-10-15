@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GC Business & Finance Flashcards & Notes</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define dark mode and light mode variables for easy switching */
+        :root {
+            /* Light Mode Defaults */
+            --bg-primary: #f7f9fb;
+            --bg-card: #ffffff;
+            --text-default: #1f2937; /* Gray-900 */
+            --text-secondary: #6b7280; /* Gray-500 */
+            --border-color: #e5e7eb;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Mode Overrides (Applied via the 'dark' class on the body) */
+        .dark {
+            --bg-primary: #111827; /* Dark Blue/Gray */
+            --bg-card: #1f2937; /* Slightly lighter than background */
+            --text-default: #f3f4f6; /* Gray-100 */
+            --text-secondary: #9ca3af; /* Gray-400 */
+            --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* General Styles using CSS variables */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-default);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .card-container {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 380px; 
+            background-color: var(--bg-card);
+            border-color: var(--border-color);
+        }
+        .card-content {
+            backface-visibility: hidden;
+            transition: all 0.5s ease;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        /* Card Flip Styles */
+        .flipped .front { transform: rotateY(180deg); opacity: 0; z-index: 1; }
+        .flipped .back { transform: rotateY(0deg); opacity: 1; z-index: 2; }
+        .front { transform: rotateY(0deg); opacity: 1; }
+        .back { transform: rotateY(180deg); opacity: 0; }
+
+        /* Custom shadow for better dark mode contrast */
+        .shadow-custom {
+            box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 5px rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 min-h-screen flex flex-col items-center">
+
+    <div class="w-full max-w-xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-50">
+                Business & Finance Prep
+            </h1>
+            <p class="text-sm text-indigo-400 font-medium">
+                100 Essential Exam Flashcards | User: <span id="user-id" class="font-normal text-teal-400">Initializing...</span>
+            </p>
+        </header>
+
+        <!-- Flashcard Area -->
+        <div id="flashcard-area" 
+             class="card-container bg-white rounded-2xl shadow-custom relative mb-6 border border-gray-100 dark:border-gray-700 transform-gpu" 
+             onclick="flipCard()">
+            
+            <!-- Card Front (Question) -->
+            <div class="card-content front">
+                <div class="text-xl font-bold mb-4 text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-100 dark:border-indigo-900 pb-2">Question</div>
+                <p id="card-question" class="text-2xl sm:text-3xl font-serif leading-snug text-gray-700 dark:text-gray-200">Loading flashcards...</p>
+                <div class="mt-12 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                    Tap to Flip
+                </div>
+            </div>
+
+            <!-- Card Back (Answer) -->
+            <div class="card-content back">
+                <div class="text-xl font-bold mb-4 text-teal-600 dark:text-teal-400 border-b-2 border-teal-100 dark:border-teal-900 pb-2">Answer</div>
+                <p id="card-answer" class="text-2xl sm:text-3xl font-serif leading-snug text-teal-800 dark:text-teal-200">Card answer will appear here.</p>
+                <div class="mt-12 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                    Tap to Flip Back
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls and Progress -->
+        <div class="flex flex-col space-y-4 mb-8">
+            <div class="flex justify-between items-center px-4">
+                <button
+                    id="shuffle-btn"
+                    onclick="shuffleCards()"
+                    class="flex items-center text-sm font-semibold text-gray-600 dark:text-gray-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    aria-label="Shuffle Cards"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shuffle mr-1"><path d="M21 16V9a2 2 0 0 0-2-2H8l-4-4"/><path d="m2 16 4 4"/><path d="M7 14 4 17"/><path d="M10 20h9a2 2 0 0 0 2-2v-7"/></svg>
+                    Shuffle
+                </button>
+                
+                <p id="progress-text" class="text-xl font-mono font-semibold text-gray-700 dark:text-gray-300">0 / 100</p>
+                
+                <!-- Dark Mode Toggle Button -->
+                <button
+                    id="theme-toggle"
+                    onclick="toggleDarkMode()"
+                    class="flex items-center text-sm font-semibold text-gray-600 dark:text-gray-400 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    aria-label="Toggle Dark Mode"
+                >
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun mr-1"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon mr-1 hidden"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    Theme
+                </button>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between space-x-4 pt-4">
+                <button
+                    onclick="prevCard()"
+                    id="prev-btn"
+                    class="flex-1 flex items-center justify-center p-3 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 font-semibold shadow-md disabled:opacity-50 hover:bg-indigo-50 dark:hover:bg-gray-600 transition duration-150 active:scale-[0.98]"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left mr-2"><path d="m15 18-6-6 6-6"/></svg> Previous
+                </button>
+
+                <button
+                    onclick="nextCard()"
+                    id="next-btn"
+                    class="flex-1 flex items-center justify-center p-3 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-gray-700 text-indigo-600 dark:text-indigo-300 font-semibold shadow-md disabled:opacity-50 hover:bg-indigo-50 dark:hover:bg-gray-600 transition duration-150 active:scale-[0.98]"
+                >
+                    Next <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right ml-2"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+            </div>
+            
+            <!-- Message Box -->
+            <div id="message-box" class="text-center mt-4 p-3 bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 rounded-lg font-bold hidden">
+                You've completed the full set! Hit shuffle to go again.
+            </div>
+
+        </div>
+
+        <!-- Notes Section (Persistent Notes) -->
+        <div class="w-full mt-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notebook-text mr-2 text-indigo-500"><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M11 2h8a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/></svg>
+                My Study Notes
+            </h2>
+            <textarea 
+                id="study-notes" 
+                rows="8" 
+                placeholder="Type your notes here. They will automatically save to your account."
+                oninput="saveNoteDelayed()"
+                class="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition resize-y"
+            ></textarea>
+            <p id="save-status" class="text-right text-sm mt-2 text-gray-500 dark:text-gray-400">
+                Ready.
+            </p>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Non-Module for better stability) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- Main Application JavaScript -->
+    <script>
+        // --- THEME LOGIC ---
+        function applyTheme(isDark) {
+            const body = document.body;
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+
+            if (isDark) {
+                body.classList.add('dark');
+                if (sunIcon) sunIcon.classList.add('hidden');
+                if (moonIcon) moonIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.remove('dark');
+                if (sunIcon) sunIcon.classList.remove('hidden');
+                if (moonIcon) moonIcon.classList.add('hidden');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function initTheme() {
+            // 1. Check user preference (manual override)
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme === 'dark');
+            } else {
+                // 2. Check system preference
+                applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+            }
+        }
+
+        window.toggleDarkMode = function() {
+            const isDark = document.body.classList.contains('dark');
+            applyTheme(!isDark);
+        };
+
+        // --- DATA (All 100 Flashcards) ---
+        const initialFlashcards = [
+            // Accounting Principles & Methods (1-20)
+            { id: 1, question: "What are the two primary components of Working Capital?", answer: "Current Assets minus Current Liabilities." },
+            { id: 2, question: "What accounting principle requires expenses to be recorded in the same period as the revenue they helped generate?", answer: "The Matching Principle." },
+            { id: 3, question: "Define 'Retained Earnings'.", answer: "The accumulated net income of the corporation since its inception, minus dividends paid to shareholders." },
+            { id: 4, question: "What is the primary function of a Balance Sheet?", answer: "To report a company's assets, liabilities, and owner's equity at a specific point in time ($$Assets = Liabilities + Equity$$)." },
+            { id: 5, question: "What is a 'T-Account' used for in bookkeeping?", answer: "A visual aid to show the flow of transactions into and out of an account (Debits on the left, Credits on the right)." },
+            { id: 6, question: "What is the rule of thumb for Current Ratio to be considered healthy?", answer: "Typically 2:1 or 2.0 (meaning current assets are twice current liabilities), though this varies by industry." },
+            { id: 7, question: "Define 'Accrual Basis Accounting'.", answer: "Revenue is recorded when earned, and expenses is recorded when incurred, regardless of when cash is exchanged." },
+            { id: 8, question: "What is 'Contra-Account'?", answer: "An account with a balance opposite to the account it is associated with (e.g., Accumulated Depreciation)." },
+            { id: 9, question: "What is the journal entry for purchasing equipment with cash?", answer: "Debit: Equipment (Asset); Credit: Cash (Asset)." },
+            { id: 10, question: "What is the 'General Ledger'?", answer: "The complete collection of all accounts used by a company." },
+            { id: 11, question: "What is 'Unearned Revenue'?", answer: "A liability representing money received by the company for goods or services that have not yet been delivered or rendered." },
+            { id: 12, question: "Define the 'Going Concern' Principle.", answer: "The assumption that a business will continue to operate for the foreseeable future." },
+            { id: 13, question: "What is the difference between straight-line and accelerated depreciation?", answer: "Straight-line expenses the same amount each period; accelerated methods (like Double Declining Balance) expense more in earlier years." },
+            { id: 14, question: "What is the main component of the 'Cost of Goods Sold' for a construction company?", answer: "Direct labor, direct materials, and overhead directly related to the project." },
+            { id: 15, question: "What are 'Fixed Costs'?", answer: "Costs that do not change with the volume of work (e.g., office rent, salaries)." },
+            { id: 16, question: "What is a 'Chart of Accounts'?", answer: "A list of all accounts used by a company to define each class of items for which money is spent or received." },
+            { id: 17, question: "How is 'Gross Profit' calculated?", answer: "Revenue (or Sales) minus Cost of Goods Sold." },
+            { id: 18, question: "What does GAAP stand for?", answer: "Generally Accepted Accounting Principles." },
+            { id: 19, question: "What is 'Owner's Equity' in a sole proprietorship?", answer: "The owner's capital account (contributions + retained earnings - withdrawals)." },
+            { id: 20, question: "How often should financial statements generally be prepared?", answer: "At least annually, but often quarterly or monthly for internal management." },
+            // Financial Management & Ratios (21-40)
+            { id: 21, question: "What does the 'Quick Ratio' (Acid-Test Ratio) measure?", answer: "A company's ability to cover its immediate liabilities with its most liquid assets (excluding inventory)." },
+            { id: 22, question: "What is the 'Debt-to-Equity Ratio' and what does a high ratio indicate?", answer: "Total Liabilities divided by Owner's Equity. A high ratio indicates higher financial risk/leverage." },
+            { id: 23, question: "What is the 'Retainage' in a construction contract?", answer: "A portion of the contract price (typically 5-10%) withheld until the work is completed and accepted." },
+            { id: 24, question: "What is the formula for calculating 'Return on Equity' (ROE)?", answer: "Net Income divided by Shareholder's Equity." },
+            { id: 25, question: "What is the key advantage of 'Leasing' equipment over 'Purchasing'?", answer: "Lower initial cash outflow and potential tax benefits (lease payments are often tax-deductible operating expenses)." },
+            { id: 26, question: "Define 'Time Value of Money'.", answer: "The principle that a dollar today is worth more than a dollar tomorrow due to its potential earning capacity." },
+            { id: 27, question: "What is the difference between 'Net Profit Margin' and 'Gross Profit Margin'?", answer: "Gross margin looks at profit after COGS; Net margin looks at profit after all expenses (COGS, operating, tax, interest)." },
+            { id: 28, question: "What is 'Cash Flow Management'?", answer: "The process of monitoring, analyzing, and optimizing the net amount of cash and cash equivalents entering and leaving a business." },
+            { id: 29, question: "What is the 'Break-Even Point'?", answer: "The level of sales at which total revenues equal total costs, resulting in zero profit." },
+            { id: 30, question: "What is the 'Percentage of Completion' method used for?", answer: "Recognizing revenue and costs of long-term construction projects as work progresses." },
+            { id: 31, question: "What is a 'Line of Credit'?", answer: "A pre-set borrowing limit that can be used and repaid repeatedly." },
+            { id: 32, question: "What are the three sections of the Statement of Cash Flows?", answer: "Operating, Investing, and Financing Activities." },
+            { id: 33, question: "What is 'Job Costing'?", answer: "Tracking revenues and costs specific to individual construction projects." },
+            { id: 34, question: "Define 'Capital Expenditure (CapEx)'.", answer: "Funds used by a company to acquire, upgrade, and maintain long-term physical assets such as property, industrial buildings, or equipment." },
+            { id: 35, question: "What is the 'Inventory Turnover Ratio'?", answer: "Measures how quickly a company is selling its inventory (Cost of Goods Sold / Average Inventory)." },
+            { id: 36, question: "What is the purpose of a 'Pro Forma' financial statement?", answer: "To project future financial results under a set of assumptions (forecasting)." },
+            { id: 37, question: "What is the 'Liquidity' of a business?", answer: "The ability of a business to meet its short-term financial obligations." },
+            { id: 38, question: "What is the key difference between a 'Loan' and 'Bond'?", answer: "A loan is typically negotiated with a single institution; a bond is a security issued to many investors." },
+            { id: 39, question: "What is 'Credit Score' used for in a contractor license application?", answer: "To demonstrate financial responsibility. (A score of 660 or higher is often required, or a licensing bond is needed)." },
+            { id: 40, question: "What is the key focus of 'Cost Estimation'?", answer: "Predicting the quantity, cost, and price of resources required to complete a project." },
+            // Contract Law & Lien Law (41-60)
+            { id: 41, question: "What is a 'Lien Law' in the context of construction finance?", answer: "A statutory right of contractors, suppliers, and laborers to place a claim against a property if they are not paid for their work or materials." },
+            { id: 42, question: "What are the three essential elements of a legally binding contract?", answer: "Offer, Acceptance, and Consideration." },
+            { id: 43, question: "What is the 'Statute of Frauds'?", answer: "A legal requirement that certain types of contracts, such as those that cannot be performed within one year, must be in writing to be enforceable." },
+            { id: 44, question: "What is 'Tort Law'?", answer: "Deals with civil wrongs that cause a claimant to suffer loss or harm, resulting in legal liability for the person who commits the tortious act (e.g., negligence)." },
+            { id: 45, question: "What is 'Arbitration' as a form of dispute resolution?", answer: "A legal technique where a dispute is submitted to one or more arbitrators who make a binding decision (award) on the dispute." },
+            { id: 46, question: "What is a 'Change Order'?", answer: "A document that modifies the original contract and scope of work, usually affecting the price and/or completion time." },
+            { id: 47, question: "What is the importance of the AIA A201 document?", answer: "It contains the 'General Conditions of the Contract for Construction,' defining the rights, responsibilities, and relationships of the owner, contractor, and architect." },
+            { id: 48, question: "Define 'Breach of Contract'.", answer: "Failure, without legal excuse, to perform any promise that forms the whole or part of a contract." },
+            { id: 49, question: "What is a 'Submittal' in project management?", answer: "Documents (drawings, samples, product data) provided by the contractor to the design team for review and approval before materials are fabricated or installed." },
+            { id: 50, question: "What is 'Liquidated Damages'?", answer: "A clause in a contract specifying a predetermined amount of money that must be paid as damages for a breach (usually late completion)." },
+            { id: 51, question: "What is the function of a 'Contract Bond'?", answer: "A guarantee that the contractor will perform the contract work and pay certain labor and material costs." },
+            { id: 52, question: "What is the difference between a 'General Contractor' and a 'Subcontractor'?", answer: "General Contractor holds the main contract with the owner; Subcontractor works under the General Contractor." },
+            { id: 53, question: "What is 'Mediation'?", answer: "A non-binding process where a neutral third party (mediator) helps the disputing parties reach a voluntary settlement." },
+            { id: 54, question: "What does a 'Notice of Commencement' (NOC) do?", answer: "A document that publicly records the start of a construction project, establishing lien rights and priority." },
+            { id: 55, question: "What are 'Mechanic's Liens'?", answer: "A type of statutory lien, similar to a construction lien, securing payment for labor or materials used to improve property." },
+            { id: 56, question: "What is 'Consideration' in a contract?", answer: "Something of value promised to another party to induce them to enter into a contract." },
+            { id: 57, question: "What is 'Waiver of Lien'?", answer: "A document from a contractor, subcontractor, or material supplier relinquishing their right to file a lien against the property." },
+            { id: 58, question: "What is the purpose of the 'Critical Path Method' (CPM)?", answer: "A project modeling technique to determine the sequence of necessary activities and the required duration of the overall project." },
+            { id: 59, question: "What is 'Indemnification'?", answer: "A contractual obligation by which one person agrees to compensate another for loss or damage." },
+            { id: 60, question: "What is the role of a 'Draw Request' or 'Application for Payment'?", answer: "A formal request by the contractor to the owner for payment for work completed up to a specific date." },
+            // Business Management & Insurance (61-80)
+            { id: 61, question: "What are the key advantages and disadvantages of a 'Sole Proprietorship'?", answer: "Advantages: Simple and easy to set up; Disadvantages: Owner has unlimited personal liability." },
+            { id: 62, question: "What is an 'S Corporation' (S Corp)?", answer: "A corporation that elects to pass corporate income, losses, deductions, and credits through to their shareholders for federal tax purposes, avoiding double taxation." },
+            { id: 63, question: "What type of business organization offers the maximum protection from personal liability?", answer: "Corporation or Limited Liability Company (LLC)." },
+            { id: 64, question: "What is 'General Liability Insurance' (GLI)?", answer: "Coverage for claims involving bodily injury and property damage resulting from business operations." },
+            { id: 65, question: "What is 'Builder's Risk Insurance'?", answer: "Property insurance that covers damage to a building while it is under construction." },
+            { id: 66, question: "Define 'Business Overhead'.", answer: "The ongoing administrative expenses of a business that cannot be directly traced to any single cost unit (e.g., office rent, salaries)." },
+            { id: 67, question: "What is a 'Business Plan'?", answer: "A formal document detailing a company's goals, the methods for achieving those goals, and the timeline for execution." },
+            { id: 68, question: "What are 'Fixed Assets' (Property, Plant, and Equipment - PP&E)?", answer: "Long-term tangible assets used in the production of goods and services (e.g., cranes, trucks, office buildings)." },
+            { id: 69, question: "What is the primary difference between a 'C Corporation' and an 'S Corporation'?", answer: "C Corps are subject to double taxation (corporate income tax and then dividend tax); S Corps have pass-through taxation." },
+            { id: 70, question: "What is 'Fidelity Bond' or 'Employee Dishonesty Coverage'?", answer: "Insurance that protects an employer from financial loss due to fraudulent or dishonest acts by employees." },
+            { id: 71, question: "What is the purpose of 'Market Analysis' in business planning?", answer: "To assess the attractiveness of a particular market segment and understand competitor dynamics." },
+            { id: 72, question: "What is 'Key Person Insurance'?", answer: "Life insurance on a high-value employee that protects the business against financial loss due to that person's death or disability." },
+            { id: 73, question: "What is a 'Zoning Variance'?", answer: "Permission from a local government to use property in a way that is otherwise not permitted by the zoning ordinance." },
+            { id: 74, question: "What is the difference between 'Deductible' and 'Premium' in insurance?", answer: "Premium is the regular payment for the policy; Deductible is the amount the insured must pay before the insurer pays." },
+            { id: 75, question: "What is the role of a 'CPA' (Certified Public Accountant)?", answer: "To provide financial auditing, tax preparation, and consulting services, often for external financial reporting." },
+            { id: 76, question: "What is the main characteristic of a 'Joint Venture'?", answer: "A business arrangement where two or more parties agree to pool resources for the purpose of accomplishing a specific task." },
+            { id: 77, question: "What is 'Filing an Annual Report' required for?", answer: "Maintaining the legal status of corporations and LLCs in most states." },
+            { id: 78, question: "What is 'Uninsured/Underinsured Motorist Coverage'?", answer: "Protects the policyholder if they are in an accident caused by a driver who is uninsured or underinsured." },
+            { id: 79, question: "What is the 'Entity Theory' of business organization?", answer: "The business is treated as a separate and distinct economic unit from its owners." },
+            { id: 80, question: "What is the importance of 'Record Retention' for a business?", answer: "Compliance with state and federal tax, labor, and safety regulations (e.g., seven years for tax records)." },
+            // Safety (OSHA/Workers Comp) & HR (81-100)
+            { id: 81, question: "What is the primary purpose of OSHA?", answer: "To ensure safe and healthful working conditions for workers by setting and enforcing standards." },
+            { id: 82, question: "What is the maximum number of employees a construction business can have before being required to maintain OSHA records?", answer: "Generally 10 or more, but all employers must report all work-related fatalities and severe injuries." },
+            { id: 83, question: "What is 'Workers' Compensation Insurance'?", answer: "Insurance providing wage replacement and medical benefits to employees injured in the course of employment." },
+            { id: 84, question: "What is the purpose of an 'SDS' (Safety Data Sheet, formerly MSDS)?", answer: "Provides detailed information about hazardous materials, including physical and chemical properties, handling, storage, and emergency procedures." },
+            { id: 85, question: "What is 'EEO' (Equal Employment Opportunity)?", answer: "Laws that prohibit discrimination against job applicants and employees based on race, color, religion, sex, national origin, age, disability, or genetic information." },
+            { id: 86, question: "What is 'FICA' used to fund?", answer: "Social Security and Medicare (Federal Insurance Contributions Act)." },
+            { id: 87, question: "What is 'SUTA' (State Unemployment Tax Act)?", answer: "State payroll tax paid by employers to fund state unemployment insurance programs." },
+            { id: 88, question: "What is 'Imputed Income'?", answer: "The value of a non-cash benefit or service provided to an employee that is considered taxable income (e.g., life insurance premiums paid by the employer)." },
+            { id: 89, question: "What is a 'W-4 Form'?", answer: "Used by the employee to tell the employer how much income tax to withhold from their paycheck." },
+            { id: 90, question: "What is 'Independent Contractor' status determined by?", answer: "The level of behavioral control, financial control, and the type of relationship the employer has with the worker (IRS guidelines)." },
+            { id: 91, question: "What are the four main elements of a comprehensive 'Safety Program'?", answer: "Management Commitment, Employee Involvement, Worksite Analysis, and Hazard Prevention/Control." },
+            { id: 92, question: "What is the key difference between an 'Employee Handbook' and a 'Policy Manual'?", answer: "Handbook is often for employees (rules, benefits); Manual is often for management (operational procedures, compliance)." },
+            { id: 93, question: "What is 'I-9 Form' used for?", answer: "To verify the identity and employment authorization of individuals hired for employment in the United States." },
+            { id: 94, question: "What are 'Unlawful Termination' grounds?", answer: "Firing an employee based on discriminatory factors (race, gender, age, etc.) or in retaliation for a protected activity (e.g., whistleblowing)." },
+            { id: 95, question: "What is 'Drug Testing Regulation' compliance based on?", answer: "State laws, which vary widely, but typically must be non-discriminatory and clearly defined in company policy." },
+            { id: 96, question: "What is 'At-Will' employment?", answer: "The employment relationship can be terminated by either party at any time, for any reason (as long as it's not illegal)." },
+            { id: 97, question: "What is the primary purpose of a 'Performance Review'?", answer: "To evaluate an employee's job performance, provide feedback, set goals, and determine compensation adjustments." },
+            { id: 98, question: "What is 'Cobra' (Consolidated Omnibus Budget Reconciliation Act)?", answer: "Gives workers and their families who lose their health benefits the right to choose to continue group health benefits provided by their plan for limited periods of time." },
+            { id: 99, question: "What is 'FUTA' (Federal Unemployment Tax Act)?", answer: "A federal payroll tax on employers used to fund state workforce agencies and pay unemployment benefits." },
+            { id: 100, question: "What is the legal requirement for retaining OSHA and safety records?", answer: "Varies by document, but many injury and illness logs must be kept for at least 5 years." },
+        ];
+        
+        // --- Global State & Firebase Refs ---
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        let currentCards = [...initialFlashcards];
+
+        // Firebase Globals
+        let db;
+        let auth;
+        let saveTimer; // for note saving delay
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // --- Core Flashcard Logic (Unchanged from previous version, confirmed stable) ---
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        window.renderCard = function() {
+            const card = currentCards[currentCardIndex];
+            if (!card) return;
+
+            document.getElementById('card-question').innerHTML = card.question;
+            document.getElementById('card-answer').innerHTML = card.answer;
+            document.getElementById('progress-text').textContent = `${currentCardIndex + 1} / ${currentCards.length}`;
+
+            // Reset flip state and hide completion message
+            isFlipped = false;
+            document.getElementById('flashcard-area').classList.remove('flipped');
+            document.getElementById('message-box').classList.add('hidden');
+        };
+
+        window.flipCard = function() {
+            isFlipped = !isFlipped;
+            const cardArea = document.getElementById('flashcard-area');
+            if (isFlipped) {
+                cardArea.classList.add('flipped');
+            } else {
+                cardArea.classList.remove('flipped');
+            }
+        };
+
+        window.nextCard = function() {
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                renderCard();
+            } else {
+                // Show completion message
+                document.getElementById('message-box').textContent = "You've completed the full set! Hit shuffle to go again.";
+                document.getElementById('message-box').classList.remove('hidden');
+            }
+        };
+
+        window.prevCard = function() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                renderCard();
+            }
+        };
+
+        window.shuffleCards = function() {
+            currentCards = shuffleArray(currentCards);
+            currentCardIndex = 0;
+            renderCard();
+        };
+
+        // --- Firestore Notes Logic (Unchanged from previous version, confirmed stable) ---
+
+        window.saveNoteDelayed = function() {
+            clearTimeout(saveTimer);
+            document.getElementById('save-status').textContent = 'Typing...';
+            saveTimer = setTimeout(saveNote, 1000);
+        };
+
+        async function saveNote() {
+            const userId = auth.currentUser ? auth.currentUser.uid : 'anonymous';
+            const notesContent = document.getElementById('study-notes').value;
+            const saveStatusEl = document.getElementById('save-status');
+            
+            if (!db || !userId || userId === 'Auth Failed (Fallback)') {
+                saveStatusEl.textContent = 'Note: Offline/No Auth. Cannot save notes.';
+                return;
+            }
+
+            try {
+                saveStatusEl.textContent = 'Saving...';
+                
+                const noteRef = db.collection('artifacts').doc(APP_ID)
+                    .collection('users').doc(userId)
+                    .collection('notes').doc('gc-finance-note');
+
+                await noteRef.set({ 
+                    content: notesContent, 
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                }, { merge: true });
+
+                saveStatusEl.textContent = 'Saved successfully!';
+                setTimeout(() => saveStatusEl.textContent = 'Ready.', 3000);
+            } catch (e) {
+                console.error("Error saving document: ", e);
+                saveStatusEl.textContent = `Save Error: ${e.message}`;
+            }
+        }
+
+        function loadNoteListener(userId) {
+            if (!db) return;
+
+            const noteRef = db.collection('artifacts').doc(APP_ID)
+                .collection('users').doc(userId)
+                .collection('notes').doc('gc-finance-note');
+
+            noteRef.onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('study-notes').value = data.content || '';
+                    document.getElementById('save-status').textContent = 'Notes loaded.';
+                } else {
+                    document.getElementById('study-notes').value = '';
+                    document.getElementById('save-status').textContent = 'No previous notes found. Start typing!';
+                }
+            }, err => {
+                console.error("Error listening to note:", err);
+                document.getElementById('save-status').textContent = 'Error loading notes.';
+            });
+        }
+
+
+        // --- Initialization and Firebase Auth ---
+        window.onload = function() {
+            
+            initTheme(); // Initialize theme preference immediately
+
+            // 1. Mandatory Firebase Setup
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            
+            // Initialize Firebase App and Services (using global namespace from non-module CDN scripts)
+            if (typeof firebase !== 'undefined') {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    auth = firebase.auth();
+                    db = firebase.firestore();
+                } catch (e) {
+                    if (!firebase.apps.length) {
+                         console.error("Firebase init failed:", e);
+                         document.getElementById('user-id').textContent = 'FATAL ERROR: See Console.';
+                         return;
+                    }
+                    auth = firebase.auth();
+                    db = firebase.firestore();
+                }
+            } else {
+                document.getElementById('user-id').textContent = 'FATAL ERROR: Firebase SDK not loaded.';
+                return;
+            }
+
+            // 2. Authentication
+            auth.onAuthStateChanged(async (user) => {
+                const userIdDisplay = document.getElementById('user-id');
+                let currentUserId;
+
+                if (!user) {
+                    try {
+                        if (initialAuthToken) {
+                            const userCredential = await auth.signInWithCustomToken(initialAuthToken);
+                            currentUserId = userCredential.user.uid;
+                        } else {
+                            const userCredential = await auth.signInAnonymously();
+                            currentUserId = userCredential.user.uid;
+                        }
+                    } catch (e) {
+                        console.error("Firebase Auth Error:", e);
+                        currentUserId = 'Auth Failed (Fallback)';
+                    }
+                } else {
+                    currentUserId = user.uid;
+                }
+                
+                // Update the user ID display and start the app
+                userIdDisplay.textContent = currentUserId;
+                renderCard(); 
+                
+                if (currentUserId && currentUserId !== 'Auth Failed (Fallback)') {
+                    loadNoteListener(currentUserId);
+                }
+            });
+            
+            // Initial render call to show loading screen quickly
+            renderCard(); 
+        };
+    </script>
+</body>
+</html>
+
